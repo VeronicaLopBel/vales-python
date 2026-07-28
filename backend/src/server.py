@@ -11,17 +11,24 @@ class APIHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('Access-Control-Allow-Credentials', 'true')
         self.end_headers()
 
     def do_OPTIONS(self):
         self._set_headers()
 
+    def do_GET(self):
+        if self.path == '/api/health':
+            self._respond_json({'ok': True, 'message': 'backend alive'})
+        else:
+            self._respond_json({'ok': False, 'message': 'Not found'}, status=404)
+
     def do_POST(self):
         if self.path == '/api/trucknet':
             self._handle_trucknet()
         elif self.path == '/api/xiga':
-            self._handle_xiga(account=1)
+            self._handle_xiga_full()
         elif self.path == '/api/xiga-prog':
             self._handle_xiga(account=2)
         else:
@@ -46,7 +53,7 @@ class APIHandler(BaseHTTPRequestHandler):
     def _default_dates(self):
         today = datetime.now()
         return (
-            (today - timedelta(days=6)).strftime('%Y-%m-%d'),
+            (today - timedelta(days=15)).strftime('%Y-%m-%d'),
             today.strftime('%Y-%m-%d'),
         )
 
@@ -88,6 +95,33 @@ class APIHandler(BaseHTTPRequestHandler):
                     remapeo_truckid=None,
                 )
             self._respond_json({'ok': True, **result})
+        except Exception as exc:
+            self._respond_json({'ok': False, 'message': str(exc)}, status=500)
+
+    def _handle_xiga_full(self):
+        body = self._read_json_body()
+        fecha_desde, fecha_hasta = self._default_dates()
+        fecha_desde = body.get('fromDate', fecha_desde)
+        fecha_hasta = body.get('toDate', fecha_hasta)
+
+        try:
+            result1 = xiga.procesar(
+                usuario=xiga.config.XIGA1_USER,
+                password=xiga.config.XIGA1_PASSWORD,
+                fecha_desde=fecha_desde,
+                fecha_hasta=fecha_hasta,
+                vehiculos_excluidos=["0125", "0106", "00157"],
+                remapeo_truckid=xiga.REMAPEO_TRUCKID_CUENTA1,
+            )
+            result2 = xiga.procesar(
+                usuario=xiga.config.XIGA2_USER,
+                password=xiga.config.XIGA2_PASSWORD,
+                fecha_desde=fecha_desde,
+                fecha_hasta=fecha_hasta,
+                vehiculos_excluidos=["0012", "0026"],
+                remapeo_truckid=None,
+            )
+            self._respond_json({'ok': True, 'xiga1': result1, 'xiga2': result2})
         except Exception as exc:
             self._respond_json({'ok': False, 'message': str(exc)}, status=500)
 
