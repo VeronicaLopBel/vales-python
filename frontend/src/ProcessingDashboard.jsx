@@ -9,13 +9,17 @@ const services = [
   { id: 'xiga-prog', name: 'XIGA PROG' },
 ];
 
-function ProcessingDashboard() {
-  const today = new Date();
-  const fromDate = new Date(today);
-  fromDate.setDate(today.getDate() - 15);
+const formatDate = (date) => date.toISOString().slice(0, 10);
 
-  const formatDate = (date) => date.toISOString().slice(0, 10);
-  const displayDate = (date) => date.toLocaleDateString('en-CA');
+function ProcessingDashboard() {
+  // Valores default: hoy y hoy-15, solo se usan para inicializar el estado
+  const today = new Date();
+  const fromDateDefault = new Date(today);
+  fromDateDefault.setDate(today.getDate() - 15);
+
+  // Estado editable de fechas (lo que realmente se manda al backend)
+  const [fromDate, setFromDate] = useState(formatDate(fromDateDefault));
+  const [toDate, setToDate] = useState(formatDate(today));
 
   const [serviceStatus, setServiceStatus] = useState({
     trucknet: 'Esperando inicio de proceso...',
@@ -28,6 +32,14 @@ function ProcessingDashboard() {
     'xiga-prog': null,
   });
   const [busy, setBusy] = useState(false);
+
+  const resetFechas = () => {
+    const hoy = new Date();
+    const desde = new Date(hoy);
+    desde.setDate(hoy.getDate() - 15);
+    setFromDate(formatDate(desde));
+    setToDate(formatDate(hoy));
+  };
 
   const callService = async (serviceId) => {
     setBusy(true);
@@ -44,10 +56,7 @@ function ProcessingDashboard() {
       const resp = await fetch(`/api/${serviceId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fromDate: formatDate(fromDate),
-          toDate: formatDate(today),
-        }),
+        body: JSON.stringify({ fromDate, toDate }), // <-- usa el estado, no fechas recalculadas
       });
 
       const contentType = resp.headers.get('content-type') || '';
@@ -122,7 +131,14 @@ function ProcessingDashboard() {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <Card raised sx={{ borderRadius: 3, bgcolor: '#fbfbfb' }}>
-        <HeaderPanel fromDate={displayDate(fromDate)} toDate={displayDate(today)} />
+        <HeaderPanel
+          fromDate={fromDate}
+          toDate={toDate}
+          onChangeFromDate={setFromDate}
+          onChangeToDate={setToDate}
+          onReset={resetFechas}
+          disabled={busy}
+        />
         <Divider />
         <CardContent sx={{ p: 4 }}>
           <Grid container spacing={3} justifyContent="space-between">

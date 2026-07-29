@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime, timedelta
 
 from src.services import trucknet, xiga
-
+from src.scheduler import iniciar_scheduler
 
 class APIHandler(BaseHTTPRequestHandler):
     def _set_headers(self, status=200):
@@ -127,6 +127,7 @@ class APIHandler(BaseHTTPRequestHandler):
 
 
 def run(server_class=HTTPServer, handler_class=APIHandler, port=8000):
+    iniciar_scheduler() 
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print(f'Serving backend API on http://127.0.0.1:{port}')
