@@ -9,12 +9,7 @@ function ServiceCard({ name, results, status, onProcess, disabled }) {
           variant="contained"
           fullWidth
           size="large"
-          sx={{
-            py: 2,
-            borderRadius: 2,
-            fontWeight: 'bold',
-            textTransform: 'none',
-          }}
+          sx={{ py: 2, borderRadius: 2, fontWeight: 'bold', textTransform: 'none' }}
           onClick={onProcess}
           disabled={disabled}
         >
@@ -28,6 +23,13 @@ function ServiceCard({ name, results, status, onProcess, disabled }) {
             <Typography variant="subtitle2" color="text.secondary">
               Resultados del Proceso:
             </Typography>
+
+            {results?.origen && (
+              <Typography variant="caption" color="text.secondary">
+                Ejecución: {results.origen === 'automatico' ? '⏱ Automática' : '🖐 Manual'}
+              </Typography>
+            )}
+
             <Grid container spacing={2}>
               <Grid item xs={6}>
                 <StatusCounter label="Descargados" value={results.descargados} />

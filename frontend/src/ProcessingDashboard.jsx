@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Container, Grid, Card, CardContent, Divider } from '@mui/material';
 import HeaderPanel from './HeaderPanel';
 import ServiceCard from './ServiceCard';
@@ -10,6 +10,15 @@ const services = [
 ];
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
+
+const mapEstado = (data) => ({
+  descargados: data.descargados ?? 0,
+  no_validos: data.no_validos ?? 0,
+  repetidos: data.repetidos ?? 0,
+  anadidos: data.anadidos ?? 0,
+  origen: data.origen ?? 'automatico',
+});
+
 
 function ProcessingDashboard() {
   // Valores default: hoy y hoy-15, solo se usan para inicializar el estado
@@ -32,6 +41,49 @@ function ProcessingDashboard() {
     'xiga-prog': null,
   });
   const [busy, setBusy] = useState(false);
+
+
+  const ultimaVistaRef = useRef({ trucknet: null, xiga: null, 'xiga-prog': null });
+
+   useEffect(() => {
+    const consultarStatus = async () => {
+      try {
+        const resp = await fetch('/api/status');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const estado = data?.estado;
+        if (!estado) return;
+
+        Object.keys(estado).forEach((serviceId) => {
+          const resultado = estado[serviceId];
+          if (!resultado) return;
+
+          // evita re-renderizar si ya mostramos exactamente este mismo resultado
+          const marca = JSON.stringify(resultado);
+          if (ultimaVistaRef.current[serviceId] === marca) return;
+          ultimaVistaRef.current[serviceId] = marca;
+
+          setServiceResults((prev) => ({
+            ...prev,
+            [serviceId]: mapEstado(resultado),
+          }));
+          setServiceStatus((prev) => ({
+            ...prev,
+            [serviceId]: 'Proceso completado (automático)',
+          }));
+        });
+      } catch (err) {
+        // silencioso: si /api/status falla, no interrumpe el resto del front
+        console.error('Error consultando /api/status', err);
+      }
+    };
+
+    consultarStatus(); // primera consulta al cargar la página
+    const intervalId = setInterval(consultarStatus, 15000); // cada 15s
+
+    return () => clearInterval(intervalId); // limpieza al desmontar
+  }, []);
+
 
   const resetFechas = () => {
     const hoy = new Date();
@@ -84,6 +136,7 @@ function ProcessingDashboard() {
           no_validos: data.no_validos ?? 0,
           repetidos: data.repetidos ?? 0,
           anadidos: data.anadidos ?? 0,
+          origen: data.origen ?? 'manual',
         };
       }
 
@@ -95,6 +148,7 @@ function ProcessingDashboard() {
             no_validos: data.xiga1.no_validos ?? 0,
             repetidos: data.xiga1.repetidos ?? 0,
             anadidos: data.xiga1.anadidos ?? 0,
+            origen: data.xiga1.origen ?? 'manual',
           },
         }));
         setServiceStatus((prev) => ({

@@ -53,7 +53,7 @@ def calcular_tarifa_por_galon(monto, galones):
 
 
 def procesar(usuario, password, fecha_desde, fecha_hasta, vehiculos_excluidos,
-             remapeo_truckid=None, sitestate="BC"):
+             remapeo_truckid=None, sitestate="BC", origen="manual"):
     """Procesa una cuenta XIGA: descarga consumos y guarda en DB."""
     remapeo_truckid = remapeo_truckid or {}
 
@@ -127,6 +127,7 @@ def procesar(usuario, password, fecha_desde, fecha_hasta, vehiculos_excluidos,
         "no_validos": no_validos,
         "repetidos": repetidos,
         "anadidos": anadidos,
+        "origen": origen
     }
 
 

@@ -3,7 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime, timedelta
 
 from src.services import trucknet, xiga
-from src.scheduler import iniciar_scheduler
+from src.scheduler import iniciar_scheduler, ultimo_estado 
 
 class APIHandler(BaseHTTPRequestHandler):
     def _set_headers(self, status=200):
@@ -21,9 +21,11 @@ class APIHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/api/health':
             self._respond_json({'ok': True, 'message': 'backend alive'})
+        elif self.path == '/api/status':
+            self._respond_json({'ok': True, 'estado': ultimo_estado})
         else:
             self._respond_json({'ok': False, 'message': 'Not found'}, status=404)
-
+            
     def do_POST(self):
         if self.path == '/api/trucknet':
             self._handle_trucknet()
