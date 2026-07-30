@@ -2,5 +2,32 @@
     "python.analysis.extraPaths": [
         "./backend/src/database",
         "./backend/src/services"
-    ]
+    ],
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#ff4f2e",
+        "activityBar.background": "#ff4f2e",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#00600f",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "activityBarTop.activeBackground": "#ff4f2e",
+        "activityBarTop.background": "#ff4f2e",
+        "activityBarTop.foreground": "#e7e7e7",
+        "activityBarTop.inactiveForeground": "#e7e7e799",
+        "commandCenter.border": "#e7e7e799",
+        "commandCenter.foreground": "#e7e7e7",
+        "sash.hoverBorder": "#ff4f2e",
+        "statusBar.background": "#fa2800",
+        "statusBar.debuggingBackground": "#fa2800",
+        "statusBar.debuggingForeground": "#e7e7e7",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#ff4f2e",
+        "statusBarItem.remoteBackground": "#00600f",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "titleBar.activeBackground": "#fa2800",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#fa280099",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#FA2800"
 }

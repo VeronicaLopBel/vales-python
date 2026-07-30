@@ -54,7 +54,13 @@ def loop_cada_hora():
             ejecutar_ciclo()
         except Exception as e:
             log(f"Error en ciclo: {e}")
-        time.sleep(3600)
+        log("Ciclo completado")
+        ahora = datetime.now()
+        siguiente_hora = (ahora.replace(minute=0, second=0, microsecond=0) 
+                          + timedelta(hours=1))
+        espera = (siguiente_hora - ahora).total_seconds()
+        log(f"Próxima ejecución a las {siguiente_hora.strftime('%H:%M:%S')}")
+        time.sleep(espera)
 
 def iniciar_scheduler():
     log("Iniciando hilo del scheduler...")
