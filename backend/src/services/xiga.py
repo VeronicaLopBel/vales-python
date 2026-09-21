@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+
+# Agrega backend/ a la ruta de Python (este archivo está en backend/src/services/)
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 import requests
 from datetime import datetime, timedelta
 from src.config import config
