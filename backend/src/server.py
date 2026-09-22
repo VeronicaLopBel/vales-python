@@ -1,5 +1,15 @@
 import json
+import os
+import sys
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler, HTTPServer
+
+# Allow running this file as a script (python src/server.py) by
+# ensuring the workspace `backend` folder is on sys.path so the
+# `src` package can be imported.
+BASE_DIR = Path(__file__).resolve().parent.parent
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
 from datetime import datetime, timedelta
 
 from src.services import trucknet, xiga
@@ -9,7 +19,16 @@ class APIHandler(BaseHTTPRequestHandler):
     def _set_headers(self, status=200):
         self.send_response(status)
         self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
+        origin = self.headers.get('Origin') or self.headers.get('origin')
+        raw_allowed = os.getenv('ALLOWED_ORIGINS', '*')
+        allowed_list = [o.strip() for o in raw_allowed.split(',') if o.strip()]
+        if '*' in allowed_list:
+            self.send_header('Access-Control-Allow-Origin', '*')
+        elif origin and origin in allowed_list:
+            self.send_header('Access-Control-Allow-Origin', origin)
+        else:
+            # fallback to the first allowed origin (useful when you set a single IP)
+            self.send_header('Access-Control-Allow-Origin', allowed_list[0] if allowed_list else '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
         self.send_header('Access-Control-Allow-Credentials', 'true')
@@ -61,12 +80,10 @@ class APIHandler(BaseHTTPRequestHandler):
 
     def _handle_trucknet(self):
         body = self._read_json_body()
-        fecha_desde, fecha_hasta = self._default_dates()
-        fecha_desde = body.get('fromDate', fecha_desde)
-        fecha_hasta = body.get('toDate', fecha_hasta)
+        desde = body.get('fromDate')
 
         try:
-            result = trucknet.procesar(fecha_desde, fecha_hasta)
+            result = trucknet.procesar(origen="manual", dry_run=False, desde=desde)
             self._respond_json({'ok': True, **result})
         except Exception as exc:
             self._respond_json({'ok': False, 'message': str(exc)}, status=500)
@@ -128,8 +145,14 @@ class APIHandler(BaseHTTPRequestHandler):
             self._respond_json({'ok': False, 'message': str(exc)}, status=500)
 
 
-def run(server_class=HTTPServer, handler_class=APIHandler, port=8000):
+def run(server_class=HTTPServer, handler_class=APIHandler, port=8002):
     iniciar_scheduler() 
+    # Allow overriding port via PORT env var
+    env_port = os.getenv('PORT')
+    try:
+        port = int(env_port) if env_port else port
+    except ValueError:
+        pass
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print(f'Serving backend API on http://127.0.0.1:{port}')

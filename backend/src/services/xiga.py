@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-# Agrega backend/ a la ruta de Python (este archivo está en backend/src/services/)
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import requests
@@ -33,8 +32,6 @@ def descargar_consumos(token, fecha_desde, fecha_hasta):
     return response.json()
 
 
-# Remapeo de camiones — solo aplica a la cuenta 1 (Helper2 en tu Java)
-# La cuenta 2 (Helper3) no tenía ningún remapeo
 REMAPEO_TRUCKID_CUENTA1 = {
     "202 MEX": "202", "200 BIN": "200", "197 BIN": "197", "252 BIN": "252",
     "267 BIN": "267", "278 TJ LOC": "278", "258 MEX": "258", "R015 BIN": "R015",
@@ -113,9 +110,9 @@ def procesar(usuario, password, fecha_desde, fecha_hasta, vehiculos_excluidos,
             "truckid": truckid,
             "fecha": fecha_solo,
             "hora": hora,
-            "galons": galones,
-            "odometro": c.get("kms", ""),
-            "grate": tarifa,
+            "galons": str(galones),
+            "odometro": str(int(float(c.get("kms") or 0))),
+            "grate": str(tarifa),
             "cardno": c.get("secuence", ""),
             "sitecode": c.get("stationNumber", ""),
             "status": "0",

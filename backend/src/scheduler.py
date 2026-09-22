@@ -31,10 +31,9 @@ def ejecutar_ciclo():
     fecha_desde = (hoy - timedelta(days=15)).strftime('%Y-%m-%d')
     fecha_hasta = hoy.strftime('%Y-%m-%d')
 
-    # TruckNet: descomentar cuando exista trucknet.procesar()
-    # (la API no mostró parámetros de fecha; devuelve ~30 días fijos)
-    # correr_paso("trucknet", "TruckNet", trucknet.procesar, origen="automatico")
-    # time.sleep(60)
+    correr_paso("trucknet", "TruckNet", trucknet.procesar,
+                origen="automatico", dry_run=False)
+    time.sleep(60)
 
     correr_paso(
         "xiga", "XIGA cuenta 1", xiga.procesar,
