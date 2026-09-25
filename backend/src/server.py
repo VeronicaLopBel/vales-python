@@ -81,9 +81,14 @@ class APIHandler(BaseHTTPRequestHandler):
     def _handle_trucknet(self):
         body = self._read_json_body()
         desde = body.get('fromDate')
+        hasta = body.get('toDate')
 
         try:
-            result = trucknet.procesar(origen="manual", dry_run=False, desde=desde)
+            result = trucknet.procesar(origen="manual", dry_run=False, desde=desde, hasta=hasta)
+            # attach timestamp and update shared estado so front polling sees this manual run
+            if isinstance(result, dict):
+                result['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            ultimo_estado['trucknet'] = result
             self._respond_json({'ok': True, **result})
         except Exception as exc:
             self._respond_json({'ok': False, 'message': str(exc)}, status=500)
@@ -113,6 +118,11 @@ class APIHandler(BaseHTTPRequestHandler):
                     vehiculos_excluidos=["0012", "0026"],
                     remapeo_truckid=None,
                 )
+            # attach timestamp and update shared estado for this account
+            if isinstance(result, dict):
+                result['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            key = 'xiga' if account == 1 else 'xiga-prog'
+            ultimo_estado[key] = result
             self._respond_json({'ok': True, **result})
         except Exception as exc:
             self._respond_json({'ok': False, 'message': str(exc)}, status=500)
@@ -140,6 +150,13 @@ class APIHandler(BaseHTTPRequestHandler):
                 vehiculos_excluidos=["0012", "0026"],
                 remapeo_truckid=None,
             )
+            # attach timestamps and update shared estado for both accounts
+            if isinstance(result1, dict):
+                result1['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            if isinstance(result2, dict):
+                result2['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            ultimo_estado['xiga'] = result1
+            ultimo_estado['xiga-prog'] = result2
             self._respond_json({'ok': True, 'xiga1': result1, 'xiga2': result2})
         except Exception as exc:
             self._respond_json({'ok': False, 'message': str(exc)}, status=500)

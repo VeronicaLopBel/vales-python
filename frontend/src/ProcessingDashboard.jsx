@@ -17,6 +17,7 @@ const mapEstado = (data) => ({
   repetidos: data.repetidos ?? 0,
   anadidos: data.anadidos ?? 0,
   origen: data.origen ?? 'automatico',
+  updated_at: data.updated_at ?? null,
 });
 
 
@@ -137,24 +138,29 @@ function ProcessingDashboard() {
           repetidos: data.repetidos ?? 0,
           anadidos: data.anadidos ?? 0,
           origen: data.origen ?? 'manual',
+          updated_at: data.updated_at ?? null,
         };
       }
 
       if (serviceId === 'xiga' && data?.xiga1 && data?.xiga2) {
+        const xigaResults = {
+          descargados: data.xiga1.descargados ?? 0,
+          no_validos: data.xiga1.no_validos ?? 0,
+          repetidos: data.xiga1.repetidos ?? 0,
+          anadidos: data.xiga1.anadidos ?? 0,
+          origen: data.xiga1.origen ?? 'manual',
+          updated_at: data.xiga1.updated_at ?? null,
+        };
         setServiceResults((prev) => ({
           ...prev,
-          xiga: {
-            descargados: data.xiga1.descargados ?? 0,
-            no_validos: data.xiga1.no_validos ?? 0,
-            repetidos: data.xiga1.repetidos ?? 0,
-            anadidos: data.xiga1.anadidos ?? 0,
-            origen: data.xiga1.origen ?? 'manual',
-          },
+          xiga: xigaResults,
         }));
         setServiceStatus((prev) => ({
           ...prev,
           xiga: 'Resultado cuenta 1 y cuenta 2 recibidos.',
         }));
+        // reflect this result as seen to avoid immediate poll overwrite
+        ultimaVistaRef.current['xiga'] = JSON.stringify(data.xiga1);
       } else {
         if (results) {
           setServiceResults((prev) => ({
@@ -163,8 +169,12 @@ function ProcessingDashboard() {
           }));
           setServiceStatus((prev) => ({
             ...prev,
-            [serviceId]: 'Proceso completado',
+            [serviceId]: `Proceso completado (${results.origen})`,
           }));
+          // mark as seen so the poll doesn't immediately overwrite
+          ultimaVistaRef.current[serviceId] = JSON.stringify({
+            ...results,
+          });
         } else {
           setServiceStatus((prev) => ({
             ...prev,

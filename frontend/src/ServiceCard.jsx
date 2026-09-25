@@ -25,9 +25,16 @@ function ServiceCard({ name, results, status, onProcess, disabled }) {
             </Typography>
 
             {results?.origen && (
-              <Typography variant="caption" color="text.secondary">
-                Ejecución: {results.origen === 'automatico' ? '⏱ Automática' : '🖐 Manual'}
-              </Typography>
+              <>
+                <Typography variant="caption" color="text.secondary">
+                  Ejecución: {results.origen === 'automatico' ? '⏱ Automática' : '🖐 Manual'}
+                </Typography>
+                {results?.updated_at && (
+                  <Typography variant="caption" color="text.secondary">
+                    Última actualización: {results.updated_at}
+                  </Typography>
+                )}
+              </>
             )}
 
             <Grid container spacing={2}>

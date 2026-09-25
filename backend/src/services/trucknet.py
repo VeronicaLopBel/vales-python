@@ -76,7 +76,7 @@ def get_transactions(token):
     return response.json()
 
 
-def procesar(origen="manual", dry_run=True, desde=None, dias=DIAS_VENTANA):
+def procesar(origen="manual", dry_run=True, desde=None, hasta=None, dias=DIAS_VENTANA):
     """Descarga las transacciones de TruckNet y las guarda en vales.
 
     dry_run=True (por defecto): NO inserta nada, solo simula y reporta.
@@ -85,6 +85,8 @@ def procesar(origen="manual", dry_run=True, desde=None, dias=DIAS_VENTANA):
     """
     if desde is None:
         desde = (datetime.now() - timedelta(days=dias)).strftime("%Y-%m-%d")
+    if hasta is None:
+        hasta = datetime.now().strftime("%Y-%m-%d")
 
     sesion = login()
     if not sesion:
@@ -94,8 +96,7 @@ def procesar(origen="manual", dry_run=True, desde=None, dias=DIAS_VENTANA):
     if todas is None:
         raise RuntimeError("No se pudieron descargar las transacciones de TruckNet")
 
-    # La API devuelve ~30 días fijos: nos quedamos solo con la ventana pedida
-    rows = [r for r in todas if r.get("transactionDate", "")[:10] >= desde]
+    rows = [r for r in todas if desde <= r.get("transactionDate", "")[:10] <= hasta]
 
     no_validos = 0
     repetidos = 0

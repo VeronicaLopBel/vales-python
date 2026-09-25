@@ -20,10 +20,14 @@ def correr_paso(clave, nombre, funcion, **kwargs):
     """Ejecuta un paso aislado: si falla, lo registra y el ciclo continúa."""
     log(f"Ejecutando {nombre}...")
     try:
-        ultimo_estado[clave] = funcion(**kwargs)
+        resultado = funcion(**kwargs)
+        # Añadir marca de tiempo de cuándo se completó este paso
+        if isinstance(resultado, dict):
+            resultado["updated_at"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        ultimo_estado[clave] = resultado
     except Exception as e:
         log(f"Error en {nombre}: {e}")
-        ultimo_estado[clave] = {"error": str(e), "origen": "automatico"}
+        ultimo_estado[clave] = {"error": str(e), "origen": "automatico", "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 
 def ejecutar_ciclo():
