@@ -154,4 +154,4 @@ def generar_reporte(desde, hasta, ruta_salida="reporte_ifta.csv"):
 
 
 if __name__ == "__main__":
-    generar_reporte("2026-09-24", "2026-09-24")
+    generar_reporte("2026-10-01", "2026-10-01")
