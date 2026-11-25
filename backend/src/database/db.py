@@ -44,3 +44,25 @@ def insertar_vale(conn, vale):
     )
     conn.commit()
     cursor.close()
+    
+def obtener_vales(desde, hasta):
+    """Trae los vales de TruckNet y XIGA entre 2 fechas ('AAAA-MM-DD').
+    Regresa una lista de diccionarios, uno por vale.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        SELECT ID, TRUCKID, FECHA, HORA, GALONS, GRATE, COMPANY, SITESTATE
+        FROM vales
+        WHERE FECHA BETWEEN ? AND ?
+          AND COMPANY IN ('TRUCK NET', 'XIGA')
+        ORDER BY FECHA, HORA
+        """,
+        desde, hasta,
+    )
+    columnas = [c[0] for c in cursor.description]
+    filas = [dict(zip(columnas, fila)) for fila in cursor.fetchall()]
+    cursor.close()
+    conn.close()
+    return filas
